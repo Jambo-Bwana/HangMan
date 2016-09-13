@@ -21,13 +21,15 @@ int main()
 	string newWord;
 	char input;
 	int randomNumber;
-	int *letterArray = new int[100];
+	char *letterArray = new char[100];
 	int lifeCount = 0;
 	int deathCount = 0;
+	int letterCounter = 0;
 	char *charArray = new char[newWord.size() + 1];
 	char letter;
 	bool found = false;
 	bool dead = false;
+	bool repeatLetter;
 
 	do
 	{
@@ -35,79 +37,105 @@ int main()
 		cout << "Press 'y' to quit." << endl;
 		cin >> input;
 
-		do
+		if (input != 'y')
 		{
-			//Starts the game
-			cout << "Welcome to Hang Man!" << endl << endl;
-
-			randomNumber = rand() % 5; //generates random value between 0 and 4
-			newWord = randomWord(randomNumber); //sends random value into randomWord function
-							    //to generate a random word from list
-
-			//Store each letter from 'newWord' into string array
-			memcpy(charArray, newWord.c_str(), newWord.size());
-
-			//Tests random word and number combinations
-//			cout << "Your word: " << newWord << ". And your number is: " << randomNumber << endl << endl;
-//			cout << "Your word size is: " << newWord.size() << endl << endl;
-
 			do
 			{
-				cout << "Guess a letter: ";
-				cin >> letter; //stores letter that user guesses
+				//Starts the game
+				cout << "Welcome to Hang Man!" << endl << endl;
 
-				//Read through array to compare each index value with the guessed letter
-				found = binarySearch(charArray, newWord.size(), letter);//binary search checks for letter in char array
+				randomNumber = rand() % 5;
+				newWord = randomWord(randomNumber);
 
-				if (found)
+				//Store each letter from 'newWord' into string array
+				memcpy(charArray, newWord.c_str(), newWord.size());
+
+				do
 				{
-					cout << "You've guessed a correct letter!" << endl << endl;
-					lifeCount++;//used to reduce number of letters left to guess
-					cout << "Your lifeCount: " << lifeCount << endl;
-					lifeStatus(deathCount);//shows body parts avatar has gained
-					cout << endl << endl;
-					cout << "Your number of remaining letters: " << (newWord.size() - lifeCount) << endl << endl;
-					if (lifeCount == newWord.size())//checks if all letters have been guessed
+					do
 					{
-						dead = true;
+						cout << "Guess a letter: ";
+						cin >> letter; //stores letter that user guesses
+						repeatLetter = binarySearch(letterArray, letterCounter, letter);
+
+						if (repeatLetter)
+						{
+							cout << "You have already tried that letter. Try a new one.";
+						}
+					} while (repeatLetter);
+
+					letterArray[letterCounter] = letter;
+					letterCounter++;
+
+					//Read through array to compare each index value with the guessed letter
+					found = binarySearch(charArray, newWord.size(), letter);//binary search checks for letter in char array
+
+					if (found)
+					{
+						cout << "You've guessed a correct letter!" << endl << endl;
+						lifeCount++;
+						cout << "Your lifeCount: " << lifeCount << endl;
+						lifeStatus(deathCount);
+						cout << endl << endl;
+						cout << "Letters guessed: ";
+						for (int i = 0; i < letterCounter; i++)
+						{
+							cout << letterArray[i] << " ";
+						}
+						cout << endl << endl;
+						cout << "Your number of remaining letters: " << (newWord.size() - lifeCount) << endl << endl;
+						if (lifeCount == newWord.size())
+						{
+							dead = true;
+						}
+						else
+						{
+							dead = false;
+						}
+					}
+					else if (!found)
+					{
+						cout << "Your guess was incorrect..." << endl << endl;
+						deathCount++;
+						cout << "Your deathCount: " << deathCount << endl;
+						lifeStatus(deathCount);
+						cout << endl << endl;
+						cout << "Letters guessed: ";
+						for (int i = 0; i < letterCounter; i++)
+						{
+							cout << letterArray[i] << " ";
+						}
+						cout << endl << endl;
+						cout << "Your number of remaining letters: " << (newWord.size() - lifeCount) << endl << endl;
+						if (deathCount == 6)
+						{
+							dead = true;
+						}
+						else
+						{
+							dead = false;
+						}
 					}
 					else
 					{
-						dead = false;
+						cout << "This message should not occur..." << endl << endl;
 					}
-				}
-				else if (!found)
-				{
-					cout << "Your guess was incorrect..." << endl << endl;
-					deathCount++;//used to increase number of body parts accumulated
-					cout << "Your deathCount: " << deathCount << endl;
-					lifeStatus(deathCount);//shows body parts avatar has gained
-					cout << endl << endl;
-					cout << "Your number of remaining letters: " << (newWord.size() - lifeCount) << endl << endl;
-					if (deathCount == 6)//6 total body parts; if all 6 gained, then avatar dies
-					{
-						dead = true;
-					}
-					else
-					{
-						dead = false;
-					}
-				}
-				else //tests to make sure that found is read as TRUE or FALSE
-				{
-					cout << "This message should not occur..." << endl << endl;
-				}
 
-			} while (!dead);//ensures game continues until word is guessed, or avatar is dead
+				} while (!dead);
 
-			cout << "The game is over!" << endl << endl;
-			cout << "Press any key to play again. Enter 'y' to quit." << endl << endl;
-			cin >> input;
-			deathCount = 0;
-			lifeCount = 0;
+				cout << "The game is over!" << endl << endl;
+				cout << "Press any key to play again. Enter 'y' to quit." << endl << endl;
+				cin >> input;
+				deathCount = 0;
+				lifeCount = 0;
 
-		} while (input != 'y');
-	
+			} while (input != 'y');
+		}
+		else
+		{
+			input = 'y';
+		}
+
 	} while (input != 'y');
 
 	system("pause");
@@ -116,7 +144,7 @@ int main()
 
 }
 
-string randomWord(int value)//generates random word based upon inserted 'value'
+string randomWord(int value)
 {
 	string word;
 
@@ -150,51 +178,53 @@ string randomWord(int value)//generates random word based upon inserted 'value'
 
 void head()
 {
-	cout << "(-.-)" << endl;
+	cout << "  |---" << "----" << "|" << endl;
+	cout << "(-.-)" << "     |" << endl << "          |" << endl << "          |" << endl << "        [---]" << endl;
 }
 
 void torso()
 {
-	cout << "(-.-)" << endl << "  |  " << endl;
+	cout << "  |---" << "----" << "|" << endl;
+	cout << "(-.-)" << "     |" << endl << "  |       |" << endl << "          |" << endl << "        [---]" << endl << endl;
 }
 
 void right_arm()
 {
-	cout << "(-.-)" << endl << "  |-  " << endl;
+	cout << "  |---" << "----" << "|" << endl;
+	cout << "(o.O) " << "    |" << endl << "  |-      |" << endl << "          |" << endl << "        [---]" << endl << endl;
 }
 
 void left_arm()
 {
-	cout << "(-.-)" << endl << " -|-  " << endl;
+	cout << "  |---" << "----" << "|" << endl;
+	cout << "(o.O)" << "     |" << endl << " -|-      |" << endl << "          |" << endl << "        [---]" << endl << endl;
 }
 
 void right_leg()
 {
-	cout << "(-.-)" << endl << " -|-  " << endl << " /" << endl;
+	cout << "  |---" << "----" << "|" << endl;
+	cout << "(O.O)" << "     |" << endl << " -|-      |" << endl << "   L      |" << endl << "        [---]" << endl << endl;
 }
 
 void full_body()
 {
-	cout << "(-.-)" << endl << " -|-  " << endl << " / L   " << endl;
+	cout << "  |---" << "----" << "|" << endl;
+	cout << "(X_X)" << "     |" << endl << " -|-      |" << endl << " / L      |" << endl << "        [---]" << endl << endl;
 }
 
-bool binarySearch(char array[], int size, int key) //Does not read each CHAR correctly (yet)
-{
+bool binarySearch(char array[], int size, int key) {
 	int start = 1, end = size;
 	int mid = (start + end) / 2;
 
-	while (start <= end&&array[mid] != key)
-	{
-		if (array[mid]<key)
-		{
+	while (start <= end&&array[mid] != key) {
+		if (array[mid]<key) {
 			start = mid + 1;
 		}
-		else
-		{
+		else {
 			end = mid - 1;
 		}
 		mid = (start + end) / 2;
-	}
+	}// While Loop End
 
 	if (array[mid] == key)
 		return true; //Returnig to main
@@ -202,9 +232,9 @@ bool binarySearch(char array[], int size, int key) //Does not read each CHAR cor
 		return false;//Returnig to main
 
 	cout << "\n\n\n";
-}
+}// binarySearch Function Ends Here
 
-void lifeStatus(int value) //displays parts of body accumulated during game after each guess attempt
+void lifeStatus(int value)
 {
 	switch (value)
 	{
@@ -240,7 +270,7 @@ void lifeStatus(int value) //displays parts of body accumulated during game afte
 	}
 }
 
-int charSearch(char array[], int size, char letter) //UNUSED - considered as alternative for BS algorithm
+int charSearch(char array[], int size, char letter)
 {
 	int count = 0;
 	char * pch;
